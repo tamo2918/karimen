@@ -29,7 +29,7 @@
           <section id="quiz-card" class="question-card">
             <section id="question-view" class="question-view">
               <h1 id="question-text" class="question-text"></h1>
-              <p class="helper-copy">○か×を選ぶと次の問題へ進みます。</p>
+              <p class="helper-copy">○か×を選ぶと正誤と解説を確認できます。</p>
 
               <div class="answer-buttons">
                 <button id="btn-o" class="answer-btn" aria-label="○で回答">
@@ -39,6 +39,29 @@
                 <button id="btn-x" class="answer-btn" aria-label="×で回答">
                   <span class="answer-symbol">×</span>
                   <span class="answer-word">BATSU</span>
+                </button>
+              </div>
+
+              <section id="feedback" class="feedback hidden" aria-live="polite">
+                <p id="feedback-title" class="feedback-title"></p>
+                <div class="feedback-grid">
+                  <article class="feedback-card">
+                    <span class="feedback-card-label">あなたの回答</span>
+                    <strong id="session-answer">-</strong>
+                  </article>
+                  <article class="feedback-card">
+                    <span class="feedback-card-label">正解</span>
+                    <strong id="correct-answer">-</strong>
+                  </article>
+                </div>
+                <p id="feedback-text" class="feedback-text"></p>
+                <p class="feedback-label">解説</p>
+                <p id="explanation" class="explanation"></p>
+              </section>
+
+              <div class="question-actions">
+                <button id="next-btn" class="next-btn hidden" aria-label="次の問題へ進む">
+                  次へ
                 </button>
               </div>
             </section>

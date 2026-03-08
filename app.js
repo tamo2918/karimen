@@ -45,15 +45,12 @@ const MARK_LABELS = {
   X: "×",
 };
 
-const AUTO_ADVANCE_MS = 480;
-
 const state = {
   order: [],
   current: 0,
   sessionAnswers: new Map(),
   phase: "quiz",
   isLocked: false,
-  advanceTimer: null,
 };
 
 const els = {
@@ -65,6 +62,13 @@ const els = {
   questionText: document.getElementById("question-text"),
   btnO: document.getElementById("btn-o"),
   btnX: document.getElementById("btn-x"),
+  feedback: document.getElementById("feedback"),
+  feedbackTitle: document.getElementById("feedback-title"),
+  feedbackText: document.getElementById("feedback-text"),
+  explanation: document.getElementById("explanation"),
+  sessionAnswer: document.getElementById("session-answer"),
+  correctAnswer: document.getElementById("correct-answer"),
+  nextBtn: document.getElementById("next-btn"),
   resultTitle: document.getElementById("result-title"),
   resultTotal: document.getElementById("result-total"),
   resultCorrect: document.getElementById("result-correct"),
@@ -95,13 +99,6 @@ function getCurrentQuestion() {
   return state.order[state.current] || null;
 }
 
-function clearAdvanceTimer() {
-  if (state.advanceTimer) {
-    clearTimeout(state.advanceTimer);
-    state.advanceTimer = null;
-  }
-}
-
 function restartAnimation(element, className) {
   if (!element) {
     return;
@@ -129,7 +126,6 @@ function animateQuestionChange() {
 }
 
 function startRound() {
-  clearAdvanceTimer();
   state.order = shuffle(window.QUESTIONS);
   state.current = 0;
   state.phase = "quiz";
@@ -166,6 +162,23 @@ function moveToNextQuestion() {
   animateQuestionChange();
 }
 
+function renderFeedback(question, answer) {
+  const isCorrect = answer === question.correctAnswer;
+
+  els.feedback.classList.remove("hidden");
+  els.feedback.classList.toggle("is-correct", isCorrect);
+  els.feedback.classList.toggle("is-wrong", !isCorrect);
+  els.feedbackTitle.textContent = isCorrect ? "正解" : "不正解";
+  els.sessionAnswer.textContent = MARK_LABELS[answer];
+  els.correctAnswer.textContent = MARK_LABELS[question.correctAnswer];
+  els.feedbackText.textContent = isCorrect
+    ? "ルールどおりに答えられています。解説で確認して次へ進めます。"
+    : "正解との差分を解説で確認してから次へ進めます。";
+  els.explanation.textContent = question.explanation;
+
+  restartAnimation(els.feedback, "is-reveal");
+}
+
 function setAnswer(answer) {
   if (state.phase !== "quiz" || state.isLocked) {
     return;
@@ -178,17 +191,13 @@ function setAnswer(answer) {
 
   state.sessionAnswers.set(question.id, answer);
   state.isLocked = true;
+  els.btnO.disabled = true;
+  els.btnX.disabled = true;
   applyAnswerState(answer, question.correctAnswer);
-
-  clearAdvanceTimer();
-  state.advanceTimer = window.setTimeout(() => {
-    state.advanceTimer = null;
-    if (state.current >= state.order.length - 1) {
-      finishRound();
-      return;
-    }
-    moveToNextQuestion();
-  }, AUTO_ADVANCE_MS);
+  renderFeedback(question, answer);
+  els.nextBtn.textContent =
+    state.current >= state.order.length - 1 ? "結果を見る" : "次へ";
+  els.nextBtn.classList.remove("hidden");
 }
 
 function renderProgress() {
@@ -206,12 +215,20 @@ function renderQuestion() {
     els.questionText.textContent = "問題データがありません。";
     els.btnO.disabled = true;
     els.btnX.disabled = true;
+    els.feedback.classList.add("hidden");
+    els.nextBtn.classList.add("hidden");
     return;
   }
 
   els.questionText.textContent = question.question;
-  els.btnO.disabled = state.isLocked;
-  els.btnX.disabled = state.isLocked;
+  els.btnO.disabled = false;
+  els.btnX.disabled = false;
+  els.feedback.classList.add("hidden");
+  els.feedback.classList.remove("is-correct", "is-wrong", "is-reveal");
+  els.sessionAnswer.textContent = "-";
+  els.correctAnswer.textContent = "-";
+  els.explanation.textContent = "";
+  els.nextBtn.classList.add("hidden");
 }
 
 function renderReviewList() {
@@ -281,6 +298,18 @@ function render() {
 function wireEvents() {
   els.btnO.addEventListener("click", () => setAnswer("O"));
   els.btnX.addEventListener("click", () => setAnswer("X"));
+  els.nextBtn.addEventListener("click", () => {
+    if (state.phase !== "quiz" || !state.isLocked) {
+      return;
+    }
+
+    if (state.current >= state.order.length - 1) {
+      finishRound();
+      return;
+    }
+
+    moveToNextQuestion();
+  });
   els.restartBtn.addEventListener("click", startRound);
 
   window.addEventListener("keydown", (event) => {
@@ -290,6 +319,9 @@ function wireEvents() {
         setAnswer("O");
       } else if (key === "x") {
         setAnswer("X");
+      } else if ((key === "enter" || key === " ") && state.isLocked) {
+        event.preventDefault();
+        els.nextBtn.click();
       }
       return;
     }
