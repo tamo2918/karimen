@@ -7,95 +7,135 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app">
-      <header class="hero">
-        <p class="eyebrow">KARI-MEN REVISION KIT</p>
-        <h1>仮免まるばつ 復習クイズ</h1>
-        <p class="subtitle">
-          前回の解答結果をもとに、苦手問題を重点的に復習できるクイズサイトです。
-        </p>
-        <div class="stat-grid">
-          <article class="stat-card">
-            <span>収録問題</span>
-            <strong id="stat-total">0</strong>
-          </article>
-          <article class="stat-card">
-            <span>前回の正答率</span>
-            <strong id="stat-prev-accuracy">0%</strong>
-          </article>
-          <article class="stat-card">
-            <span>前回のミス数</span>
-            <strong id="stat-prev-missed">0</strong>
-          </article>
-          <article class="stat-card">
-            <span>今回の正答率</span>
-            <strong id="stat-session-accuracy">0%</strong>
-          </article>
-        </div>
-      </header>
-
-      <section class="card toolbar">
-        <div class="mode-switch" role="tablist" aria-label="出題モード">
-          <button class="mode-btn is-active" data-mode="all">全問題</button>
-          <button class="mode-btn" data-mode="missed">前回ミスのみ</button>
-          <button class="mode-btn" data-mode="random">ランダム</button>
-        </div>
-        <div class="progress-wrap">
-          <p id="progress-label">問題 1 / 1</p>
-          <div class="progress-track" aria-hidden="true">
-            <div id="progress-bar" class="progress-bar"></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="quiz-card" class="card quiz-card">
-        <div class="quiz-head">
-          <p id="question-count">Q1</p>
-          <div class="pill-group">
-            <span id="source-no" class="pill"></span>
-            <span id="previous-result" class="pill"></span>
-          </div>
-        </div>
-
-        <h2 id="question-text" class="question-text"></h2>
-
-        <div class="answer-meta">
-          <span>前回のあなたの解答: <strong id="your-answer">-</strong></span>
-          <span>正解: <strong id="correct-answer">-</strong></span>
-        </div>
-
-        <div class="answer-buttons">
-          <button id="btn-o" class="answer-btn answer-o" aria-label="○で回答">
-            ○
-          </button>
-          <button id="btn-x" class="answer-btn answer-x" aria-label="×で回答">
-            ×
-          </button>
-        </div>
-
-        <section id="feedback" class="feedback hidden" aria-live="polite">
-          <p id="feedback-title" class="feedback-title"></p>
-          <p id="feedback-text" class="feedback-text"></p>
-          <p class="feedback-label">解説</p>
-          <p id="explanation" class="explanation"></p>
+      <aside class="dashboard" aria-label="復習ダッシュボード">
+        <section class="panel intro-panel">
+          <p class="eyebrow">KARI-MEN REVIEW</p>
+          <h1>仮免<br />Revision</h1>
+          <p class="subtitle">
+            前回の結果をもとに、苦手問題を静かに潰していくための復習モード。
+          </p>
         </section>
 
-        <div class="nav-buttons">
-          <button id="prev-btn" class="nav-btn">前へ</button>
-          <button id="next-btn" class="nav-btn">次へ</button>
-        </div>
-      </section>
+        <section class="panel metrics-panel">
+          <div class="section-head">
+            <p class="section-label">Dashboard</p>
+            <h2>Progress & Score</h2>
+          </div>
+          <div class="stat-grid">
+            <article class="stat-card">
+              <span>収録問題</span>
+              <strong id="stat-total">0</strong>
+            </article>
+            <article class="stat-card">
+              <span>前回の正答率</span>
+              <strong id="stat-prev-accuracy">0%</strong>
+            </article>
+            <article class="stat-card">
+              <span>前回のミス数</span>
+              <strong id="stat-prev-missed">0</strong>
+            </article>
+            <article class="stat-card">
+              <span>今回の正答率</span>
+              <strong id="stat-session-accuracy">0%</strong>
+            </article>
+          </div>
+        </section>
 
-      <section class="card review-card">
-        <h3>前回ミスした問題へジャンプ</h3>
-        <p id="missed-count" class="review-note"></p>
-        <div id="missed-list" class="missed-list"></div>
+        <section class="panel control-panel">
+          <div class="section-head">
+            <p class="section-label">Mode</p>
+            <h2>出題フィルター</h2>
+          </div>
+          <div class="mode-switch" role="tablist" aria-label="出題モード">
+            <button class="mode-btn is-active" data-mode="all">全問題</button>
+            <button class="mode-btn" data-mode="missed">前回ミスのみ</button>
+            <button class="mode-btn" data-mode="random">ランダム</button>
+          </div>
+          <div class="progress-wrap">
+            <p id="progress-label">問題 1 / 1</p>
+            <div class="progress-track" aria-hidden="true">
+              <div id="progress-bar" class="progress-bar"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel review-panel">
+          <div class="section-head">
+            <p class="section-label">Missed Jump</p>
+            <h2>前回ミスした問題</h2>
+          </div>
+          <p id="missed-count" class="review-note"></p>
+          <div id="missed-list" class="missed-list"></div>
+        </section>
+      </aside>
+
+      <section class="stage" aria-label="クイズ問題">
+        <div class="stage-head">
+          <div class="stage-counter">
+            <span class="stage-ring" aria-hidden="true"></span>
+            <p id="question-count">01 / 01</p>
+          </div>
+          <div class="stage-nav">
+            <button id="prev-btn" class="nav-btn" aria-label="前の問題">
+              &larr;
+            </button>
+            <button id="next-btn" class="nav-btn" aria-label="次の問題">
+              &rarr;
+            </button>
+          </div>
+        </div>
+
+        <div class="card-stack">
+          <section id="quiz-card" class="question-card">
+            <div class="question-top">
+              <p class="card-tag">READY TO REVIEW_</p>
+              <div class="pill-group">
+                <span id="source-no" class="pill"></span>
+                <span id="previous-result" class="pill"></span>
+              </div>
+            </div>
+
+            <h2 id="question-text" class="question-text"></h2>
+
+            <div class="answer-meta">
+              <article class="meta-card">
+                <span class="meta-label">前回の回答</span>
+                <strong id="your-answer">-</strong>
+              </article>
+              <article class="meta-card">
+                <span class="meta-label">正解</span>
+                <strong id="correct-answer">-</strong>
+              </article>
+            </div>
+
+            <div class="answer-buttons">
+              <button id="btn-o" class="answer-btn" aria-label="○で回答">
+                <span class="answer-symbol">○</span>
+                <span class="answer-word">MARU</span>
+              </button>
+              <button id="btn-x" class="answer-btn" aria-label="×で回答">
+                <span class="answer-symbol">×</span>
+                <span class="answer-word">BATSU</span>
+              </button>
+            </div>
+
+            <section id="feedback" class="feedback hidden" aria-live="polite">
+              <p id="feedback-title" class="feedback-title"></p>
+              <p id="feedback-text" class="feedback-text"></p>
+              <p class="feedback-label">解説</p>
+              <p id="explanation" class="explanation"></p>
+            </section>
+
+            <p class="terminal-note">&gt; KEEP THE RULES SHARP _</p>
+          </section>
+        </div>
       </section>
     </main>
 

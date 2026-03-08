@@ -183,7 +183,7 @@ function renderProgress() {
   const index = total ? state.current + 1 : 0;
   const ratio = total ? (index / total) * 100 : 0;
 
-  els.progressLabel.textContent = `問題 ${index} / ${total}（${MODE_LABELS[state.mode]}）`;
+  els.progressLabel.textContent = `${MODE_LABELS[state.mode]} / ${String(index).padStart(2, "0")} - ${String(total).padStart(2, "0")}`;
   els.progressBar.style.width = `${ratio}%`;
 }
 
@@ -220,9 +220,10 @@ function renderFeedback(question, sessionAnswer) {
 function renderQuestion() {
   const question = getCurrentQuestion();
   if (!question) {
-    els.questionCount.textContent = "問題なし";
+    els.questionCount.textContent = "00 / 00";
     els.sourceNo.textContent = "出典No: -";
     els.previousResult.textContent = "前回結果: -";
+    els.previousResult.classList.remove("pill-correct", "pill-missed");
     els.questionText.textContent = "このモードで表示できる問題がありません。";
     els.yourAnswer.textContent = "-";
     els.correctAnswer.textContent = "-";
@@ -237,8 +238,10 @@ function renderQuestion() {
   const previouslyCorrect = wasPreviouslyCorrect(question);
   const sessionAnswer = state.sessionAnswers.get(question.id);
 
-  els.questionCount.textContent = `Q${question.id}`;
-  els.sourceNo.textContent = `出典No: ${question.sourceNo}`;
+  els.questionCount.textContent = `${String(state.current + 1).padStart(2, "0")} / ${String(
+    state.pool.length,
+  ).padStart(2, "0")}`;
+  els.sourceNo.textContent = `source ${question.sourceNo}`;
   els.previousResult.textContent = previouslyCorrect ? "前回: 正解" : "前回: ミス";
   els.previousResult.classList.toggle("pill-correct", previouslyCorrect);
   els.previousResult.classList.toggle("pill-missed", !previouslyCorrect);
@@ -256,14 +259,14 @@ function renderQuestion() {
 
 function renderMissedJumps() {
   const missed = window.QUESTIONS.filter((q) => !wasPreviouslyCorrect(q));
-  els.missedCount.textContent = `前回ミス ${missed.length}問。クリックすると該当問題に移動します。`;
+  els.missedCount.textContent = `前回ミス ${missed.length}問。クリックで該当問題に移動します。`;
   els.missedList.innerHTML = "";
 
   missed.forEach((question) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "jump-btn";
-    button.textContent = `Q${question.id}（出典No:${question.sourceNo}）`;
+    button.textContent = `Q${String(question.id).padStart(2, "0")} / ${question.sourceNo}`;
     button.addEventListener("click", () => {
       setMode("all", question.id);
       els.quizCard.scrollIntoView({ behavior: "smooth", block: "start" });
