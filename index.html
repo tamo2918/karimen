@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>仮免まるばつ復習クイズ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <p class="eyebrow">KARI-MEN REVISION KIT</p>
+        <h1>仮免まるばつ 復習クイズ</h1>
+        <p class="subtitle">
+          前回の解答結果をもとに、苦手問題を重点的に復習できるクイズサイトです。
+        </p>
+        <div class="stat-grid">
+          <article class="stat-card">
+            <span>収録問題</span>
+            <strong id="stat-total">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>前回の正答率</span>
+            <strong id="stat-prev-accuracy">0%</strong>
+          </article>
+          <article class="stat-card">
+            <span>前回のミス数</span>
+            <strong id="stat-prev-missed">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>今回の正答率</span>
+            <strong id="stat-session-accuracy">0%</strong>
+          </article>
+        </div>
+      </header>
+
+      <section class="card toolbar">
+        <div class="mode-switch" role="tablist" aria-label="出題モード">
+          <button class="mode-btn is-active" data-mode="all">全問題</button>
+          <button class="mode-btn" data-mode="missed">前回ミスのみ</button>
+          <button class="mode-btn" data-mode="random">ランダム</button>
+        </div>
+        <div class="progress-wrap">
+          <p id="progress-label">問題 1 / 1</p>
+          <div class="progress-track" aria-hidden="true">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="quiz-card" class="card quiz-card">
+        <div class="quiz-head">
+          <p id="question-count">Q1</p>
+          <div class="pill-group">
+            <span id="source-no" class="pill"></span>
+            <span id="previous-result" class="pill"></span>
+          </div>
+        </div>
+
+        <h2 id="question-text" class="question-text"></h2>
+
+        <div class="answer-meta">
+          <span>前回のあなたの解答: <strong id="your-answer">-</strong></span>
+          <span>正解: <strong id="correct-answer">-</strong></span>
+        </div>
+
+        <div class="answer-buttons">
+          <button id="btn-o" class="answer-btn answer-o" aria-label="○で回答">
+            ○
+          </button>
+          <button id="btn-x" class="answer-btn answer-x" aria-label="×で回答">
+            ×
+          </button>
+        </div>
+
+        <section id="feedback" class="feedback hidden" aria-live="polite">
+          <p id="feedback-title" class="feedback-title"></p>
+          <p id="feedback-text" class="feedback-text"></p>
+          <p class="feedback-label">解説</p>
+          <p id="explanation" class="explanation"></p>
+        </section>
+
+        <div class="nav-buttons">
+          <button id="prev-btn" class="nav-btn">前へ</button>
+          <button id="next-btn" class="nav-btn">次へ</button>
+        </div>
+      </section>
+
+      <section class="card review-card">
+        <h3>前回ミスした問題へジャンプ</h3>
+        <p id="missed-count" class="review-note"></p>
+        <div id="missed-list" class="missed-list"></div>
+      </section>
+    </main>
+
+    <script src="./questions.js"></script>
+    <script src="./questions-extra.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
