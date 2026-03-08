@@ -240,7 +240,7 @@ function renderFeedback(question, sessionAnswer) {
   els.feedback.classList.remove("hidden");
   els.feedback.classList.toggle("is-correct", isCorrect);
   els.feedback.classList.toggle("is-wrong", !isCorrect);
-  els.feedbackTitle.textContent = isCorrect ? "Correct." : "Need one more pass.";
+  els.feedbackTitle.textContent = isCorrect ? "正解" : "不正解";
   els.sessionAnswer.textContent = MARK_LABELS[sessionAnswer];
   els.yourAnswer.textContent = MARK_LABELS[question.yourAnswer];
   els.correctAnswer.textContent = MARK_LABELS[question.correctAnswer];
