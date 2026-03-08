@@ -14,118 +14,65 @@
   </head>
   <body>
     <main class="app">
-      <aside class="dashboard" aria-label="復習ダッシュボード">
-        <section class="panel intro-panel">
-          <p class="eyebrow">KARI-MEN REVIEW</p>
-          <h1>仮免<br />Revision</h1>
-          <p class="subtitle">
-            前回の結果をもとに、苦手問題を静かに潰していくための復習モード。
-          </p>
-        </section>
-
-        <section class="panel metrics-panel">
-          <div class="section-head">
-            <p class="section-label">Dashboard</p>
-            <h2>Progress & Score</h2>
-          </div>
-          <div class="stat-grid">
-            <article class="stat-card">
-              <span>収録問題</span>
-              <strong id="stat-total">0</strong>
-            </article>
-            <article class="stat-card">
-              <span>前回の正答率</span>
-              <strong id="stat-prev-accuracy">0%</strong>
-            </article>
-            <article class="stat-card">
-              <span>前回のミス数</span>
-              <strong id="stat-prev-missed">0</strong>
-            </article>
-            <article class="stat-card">
-              <span>今回の正答率</span>
-              <strong id="stat-session-accuracy">0%</strong>
-            </article>
-          </div>
-        </section>
-
-        <section class="panel control-panel">
-          <div class="section-head">
-            <p class="section-label">Mode</p>
-            <h2>出題フィルター</h2>
-          </div>
-          <div class="mode-switch" role="tablist" aria-label="出題モード">
-            <button class="mode-btn is-active" data-mode="all">全問題</button>
-            <button class="mode-btn" data-mode="missed">前回ミスのみ</button>
-            <button class="mode-btn" data-mode="random">ランダム</button>
-          </div>
-          <div class="progress-wrap">
-            <p id="progress-label">問題 1 / 1</p>
-            <div class="progress-track" aria-hidden="true">
-              <div id="progress-bar" class="progress-bar"></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel review-panel">
-          <div class="section-head">
-            <p class="section-label">Missed Jump</p>
-            <h2>前回ミスした問題</h2>
-          </div>
-          <p id="missed-count" class="review-note"></p>
-          <div id="missed-list" class="missed-list"></div>
-        </section>
-      </aside>
-
       <section class="stage" aria-label="クイズ問題">
         <div class="stage-head">
           <div class="stage-counter">
             <span id="stage-ring" class="stage-ring" aria-hidden="true"></span>
-            <p id="question-count">01 / 01</p>
-          </div>
-          <div class="stage-nav">
-            <button id="prev-btn" class="nav-btn" aria-label="前の問題">
-              &larr;
-            </button>
-            <button id="next-btn" class="nav-btn" aria-label="次の問題">
-              &rarr;
-            </button>
+            <div class="stage-copy">
+              <p class="eyebrow">KARI-MEN RANDOM QUIZ</p>
+              <p id="question-count" class="stage-count">01 / 01</p>
+            </div>
           </div>
         </div>
 
         <div class="card-stack">
           <section id="quiz-card" class="question-card">
-            <h2 id="question-text" class="question-text"></h2>
+            <section id="question-view" class="question-view">
+              <h1 id="question-text" class="question-text"></h1>
+              <p class="helper-copy">○か×を選ぶと次の問題へ進みます。</p>
 
-            <div class="answer-buttons">
-              <button id="btn-o" class="answer-btn" aria-label="○で回答">
-                <span class="answer-symbol">○</span>
-                <span class="answer-word">MARU</span>
-              </button>
-              <button id="btn-x" class="answer-btn" aria-label="×で回答">
-                <span class="answer-symbol">×</span>
-                <span class="answer-word">BATSU</span>
-              </button>
-            </div>
+              <div class="answer-buttons">
+                <button id="btn-o" class="answer-btn" aria-label="○で回答">
+                  <span class="answer-symbol">○</span>
+                  <span class="answer-word">MARU</span>
+                </button>
+                <button id="btn-x" class="answer-btn" aria-label="×で回答">
+                  <span class="answer-symbol">×</span>
+                  <span class="answer-word">BATSU</span>
+                </button>
+              </div>
+            </section>
 
-            <section id="feedback" class="feedback hidden" aria-live="polite">
-              <p id="feedback-title" class="feedback-title"></p>
-              <div class="result-grid">
-                <article class="result-card">
-                  <span class="result-label">今回の回答</span>
-                  <strong id="session-answer">-</strong>
+            <section id="result-view" class="result-view hidden" aria-live="polite">
+              <p class="result-kicker">Quiz Result</p>
+              <h2 id="result-title" class="result-title">100問完了</h2>
+              <div class="summary-grid">
+                <article class="summary-card">
+                  <span class="summary-label">解いた問題</span>
+                  <strong id="result-total">0</strong>
                 </article>
-                <article class="result-card">
-                  <span class="result-label">前回の回答</span>
-                  <strong id="your-answer">-</strong>
+                <article class="summary-card">
+                  <span class="summary-label">正解数</span>
+                  <strong id="result-correct">0</strong>
                 </article>
-                <article class="result-card">
-                  <span class="result-label">正解</span>
-                  <strong id="correct-answer">-</strong>
+                <article class="summary-card">
+                  <span class="summary-label">正答率</span>
+                  <strong id="result-accuracy">0%</strong>
                 </article>
               </div>
-              <p id="feedback-text" class="feedback-text"></p>
-              <p class="feedback-label">解説</p>
-              <p id="explanation" class="explanation"></p>
+
+              <p id="result-message" class="result-message"></p>
+
+              <section id="review-section" class="review-section hidden">
+                <h3 class="review-title">復習したい問題</h3>
+                <div id="review-list" class="review-list"></div>
+              </section>
+
+              <div class="result-actions">
+                <button id="restart-btn" class="restart-btn" aria-label="もう一度ランダムで解く">
+                  もう一度ランダムで解く
+                </button>
+              </div>
             </section>
           </section>
         </div>

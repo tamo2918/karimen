@@ -40,54 +40,40 @@ function buildQuestionBank() {
 
 window.QUESTIONS = buildQuestionBank();
 
-const MODE_LABELS = {
-  all: "全問題",
-  missed: "前回ミスのみ",
-  random: "ランダム",
-};
-
 const MARK_LABELS = {
   O: "○",
   X: "×",
 };
 
+const AUTO_ADVANCE_MS = 480;
+
 const state = {
-  mode: "all",
-  pool: [],
+  order: [],
   current: 0,
   sessionAnswers: new Map(),
+  phase: "quiz",
+  isLocked: false,
+  advanceTimer: null,
 };
 
 const els = {
-  statTotal: document.getElementById("stat-total"),
-  statPrevAccuracy: document.getElementById("stat-prev-accuracy"),
-  statPrevMissed: document.getElementById("stat-prev-missed"),
-  statSessionAccuracy: document.getElementById("stat-session-accuracy"),
-  modeButtons: [...document.querySelectorAll(".mode-btn")],
-  progressLabel: document.getElementById("progress-label"),
-  progressBar: document.getElementById("progress-bar"),
   stageRing: document.getElementById("stage-ring"),
   questionCount: document.getElementById("question-count"),
+  quizCard: document.getElementById("quiz-card"),
+  questionView: document.getElementById("question-view"),
+  resultView: document.getElementById("result-view"),
   questionText: document.getElementById("question-text"),
-  sessionAnswer: document.getElementById("session-answer"),
-  yourAnswer: document.getElementById("your-answer"),
-  correctAnswer: document.getElementById("correct-answer"),
   btnO: document.getElementById("btn-o"),
   btnX: document.getElementById("btn-x"),
-  feedback: document.getElementById("feedback"),
-  feedbackTitle: document.getElementById("feedback-title"),
-  feedbackText: document.getElementById("feedback-text"),
-  explanation: document.getElementById("explanation"),
-  prevBtn: document.getElementById("prev-btn"),
-  nextBtn: document.getElementById("next-btn"),
-  missedCount: document.getElementById("missed-count"),
-  missedList: document.getElementById("missed-list"),
-  quizCard: document.getElementById("quiz-card"),
+  resultTitle: document.getElementById("result-title"),
+  resultTotal: document.getElementById("result-total"),
+  resultCorrect: document.getElementById("result-correct"),
+  resultAccuracy: document.getElementById("result-accuracy"),
+  resultMessage: document.getElementById("result-message"),
+  reviewSection: document.getElementById("review-section"),
+  reviewList: document.getElementById("review-list"),
+  restartBtn: document.getElementById("restart-btn"),
 };
-
-function wasPreviouslyCorrect(question) {
-  return question.yourAnswer === question.correctAnswer;
-}
 
 function shuffle(list) {
   const cloned = [...list];
@@ -106,7 +92,14 @@ function toPercent(correct, total) {
 }
 
 function getCurrentQuestion() {
-  return state.pool[state.current] || null;
+  return state.order[state.current] || null;
+}
+
+function clearAdvanceTimer() {
+  if (state.advanceTimer) {
+    clearTimeout(state.advanceTimer);
+    state.advanceTimer = null;
+  }
 }
 
 function restartAnimation(element, className) {
@@ -117,101 +110,6 @@ function restartAnimation(element, className) {
   element.classList.remove(className);
   void element.offsetWidth;
   element.classList.add(className);
-}
-
-function triggerQuestionTransition() {
-  restartAnimation(els.quizCard, "is-transitioning");
-  restartAnimation(els.stageRing, "is-energized");
-}
-
-function setMode(mode, jumpToId = null) {
-  state.mode = mode;
-  const base =
-    mode === "missed"
-      ? window.QUESTIONS.filter((q) => !wasPreviouslyCorrect(q))
-      : [...window.QUESTIONS];
-
-  state.pool = mode === "random" ? shuffle(base) : base;
-  state.current = 0;
-
-  if (jumpToId !== null) {
-    const targetIndex = state.pool.findIndex((q) => q.id === jumpToId);
-    if (targetIndex >= 0) {
-      state.current = targetIndex;
-    }
-  }
-
-  render();
-  triggerQuestionTransition();
-}
-
-function setAnswer(answer) {
-  const question = getCurrentQuestion();
-  if (!question) {
-    return;
-  }
-
-  state.sessionAnswers.set(question.id, answer);
-  render();
-}
-
-function goToPrev() {
-  const nextIndex = Math.max(0, state.current - 1);
-  if (nextIndex === state.current) {
-    return;
-  }
-  state.current = nextIndex;
-  render();
-  triggerQuestionTransition();
-}
-
-function goToNext() {
-  const nextIndex = Math.min(state.pool.length - 1, state.current + 1);
-  if (nextIndex === state.current) {
-    return;
-  }
-  state.current = nextIndex;
-  render();
-  triggerQuestionTransition();
-}
-
-function renderGlobalStats() {
-  const total = window.QUESTIONS.length;
-  const prevCorrectCount = window.QUESTIONS.filter(wasPreviouslyCorrect).length;
-  const prevMissedCount = total - prevCorrectCount;
-
-  const answeredInMode = state.pool.filter((q) =>
-    state.sessionAnswers.has(q.id),
-  ).length;
-  const sessionCorrectInMode = state.pool.filter(
-    (q) =>
-      state.sessionAnswers.has(q.id) &&
-      state.sessionAnswers.get(q.id) === q.correctAnswer,
-  ).length;
-
-  const sessionRate = toPercent(sessionCorrectInMode, answeredInMode);
-
-  els.statTotal.textContent = String(total);
-  els.statPrevAccuracy.textContent = toPercent(prevCorrectCount, total);
-  els.statPrevMissed.textContent = String(prevMissedCount);
-  els.statSessionAccuracy.textContent = `${sessionRate} (${sessionCorrectInMode}/${answeredInMode})`;
-}
-
-function renderModeButtons() {
-  els.modeButtons.forEach((button) => {
-    const active = button.dataset.mode === state.mode;
-    button.classList.toggle("is-active", active);
-  });
-}
-
-function renderProgress() {
-  const total = state.pool.length;
-  const index = total ? state.current + 1 : 0;
-  const ratio = total ? (index / total) * 100 : 0;
-
-  els.progressLabel.textContent = `${MODE_LABELS[state.mode]} / ${String(index).padStart(2, "0")} - ${String(total).padStart(2, "0")}`;
-  els.progressBar.style.width = `${ratio}%`;
-  els.stageRing?.style.setProperty("--progress-ratio", `${total ? index / total : 0}`);
 }
 
 function resetChoiceStyles() {
@@ -225,126 +123,187 @@ function resetChoiceStyles() {
   });
 }
 
-function renderFeedback(question, sessionAnswer) {
-  if (!sessionAnswer) {
-    els.feedback.classList.add("hidden");
-    els.feedback.classList.remove("is-correct", "is-wrong", "is-reveal");
-    resetChoiceStyles();
-    return;
-  }
+function animateQuestionChange() {
+  restartAnimation(els.quizCard, "is-transitioning");
+  restartAnimation(els.stageRing, "is-energized");
+}
 
-  const isCorrect = sessionAnswer === question.correctAnswer;
-  const selectedButton = sessionAnswer === "O" ? els.btnO : els.btnX;
-  const correctButton = question.correctAnswer === "O" ? els.btnO : els.btnX;
+function startRound() {
+  clearAdvanceTimer();
+  state.order = shuffle(window.QUESTIONS);
+  state.current = 0;
+  state.phase = "quiz";
+  state.isLocked = false;
+  state.sessionAnswers.clear();
+  render();
+  animateQuestionChange();
+}
 
-  els.feedback.classList.remove("hidden");
-  els.feedback.classList.toggle("is-correct", isCorrect);
-  els.feedback.classList.toggle("is-wrong", !isCorrect);
-  els.feedbackTitle.textContent = isCorrect ? "正解" : "不正解";
-  els.sessionAnswer.textContent = MARK_LABELS[sessionAnswer];
-  els.yourAnswer.textContent = MARK_LABELS[question.yourAnswer];
-  els.correctAnswer.textContent = MARK_LABELS[question.correctAnswer];
-  els.feedbackText.textContent = `前回は ${MARK_LABELS[question.yourAnswer]}、今回は ${MARK_LABELS[sessionAnswer]}。ルールの差分を解説で固めます。`;
-  els.explanation.textContent = question.explanation;
+function applyAnswerState(answer, correctAnswer) {
+  const selectedButton = answer === "O" ? els.btnO : els.btnX;
+  const correctButton = correctAnswer === "O" ? els.btnO : els.btnX;
 
   resetChoiceStyles();
   selectedButton.classList.add("is-selected", "is-pop");
   correctButton.classList.add("is-correct-choice");
-  if (!isCorrect) {
+
+  if (answer !== correctAnswer) {
     selectedButton.classList.add("is-wrong-choice");
   }
-  restartAnimation(els.feedback, "is-reveal");
+}
+
+function finishRound() {
+  state.phase = "result";
+  state.isLocked = false;
+  render();
+  animateQuestionChange();
+}
+
+function moveToNextQuestion() {
+  state.current += 1;
+  state.isLocked = false;
+  render();
+  animateQuestionChange();
+}
+
+function setAnswer(answer) {
+  if (state.phase !== "quiz" || state.isLocked) {
+    return;
+  }
+
+  const question = getCurrentQuestion();
+  if (!question) {
+    return;
+  }
+
+  state.sessionAnswers.set(question.id, answer);
+  state.isLocked = true;
+  applyAnswerState(answer, question.correctAnswer);
+
+  clearAdvanceTimer();
+  state.advanceTimer = window.setTimeout(() => {
+    state.advanceTimer = null;
+    if (state.current >= state.order.length - 1) {
+      finishRound();
+      return;
+    }
+    moveToNextQuestion();
+  }, AUTO_ADVANCE_MS);
+}
+
+function renderProgress() {
+  const total = state.order.length;
+  const index = state.phase === "result" ? total : state.current + 1;
+  els.questionCount.textContent = `${String(index).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
+  els.stageRing?.style.setProperty("--progress-ratio", `${total ? index / total : 0}`);
 }
 
 function renderQuestion() {
   const question = getCurrentQuestion();
+  resetChoiceStyles();
+
   if (!question) {
-    els.questionCount.textContent = "00 / 00";
-    els.questionText.textContent = "このモードで表示できる問題がありません。";
-    els.sessionAnswer.textContent = "-";
-    els.yourAnswer.textContent = "-";
-    els.correctAnswer.textContent = "-";
+    els.questionText.textContent = "問題データがありません。";
     els.btnO.disabled = true;
     els.btnX.disabled = true;
-    els.prevBtn.disabled = true;
-    els.nextBtn.disabled = true;
-    renderFeedback(null, null);
     return;
   }
 
-  const sessionAnswer = state.sessionAnswers.get(question.id);
-
-  els.questionCount.textContent = `${String(state.current + 1).padStart(2, "0")} / ${String(
-    state.pool.length,
-  ).padStart(2, "0")}`;
   els.questionText.textContent = question.question;
-  els.sessionAnswer.textContent = "-";
-  els.yourAnswer.textContent = "-";
-  els.correctAnswer.textContent = "-";
-
-  els.btnO.disabled = false;
-  els.btnX.disabled = false;
-  els.prevBtn.disabled = state.current === 0;
-  els.nextBtn.disabled = state.current === state.pool.length - 1;
-
-  renderFeedback(question, sessionAnswer);
+  els.btnO.disabled = state.isLocked;
+  els.btnX.disabled = state.isLocked;
 }
 
-function renderMissedJumps() {
-  const missed = window.QUESTIONS.filter((q) => !wasPreviouslyCorrect(q));
-  els.missedCount.textContent = `前回ミス ${missed.length}問。クリックで該当問題に移動します。`;
-  els.missedList.innerHTML = "";
+function renderReviewList() {
+  const missed = state.order.filter(
+    (question) => state.sessionAnswers.get(question.id) !== question.correctAnswer,
+  );
 
-  missed.forEach((question) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "jump-btn";
-    button.textContent = `Q${String(question.id).padStart(2, "0")} / ${question.sourceNo}`;
-    button.addEventListener("click", () => {
-      setMode("all", question.id);
-      els.quizCard.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    els.missedList.appendChild(button);
+  els.reviewList.innerHTML = "";
+
+  if (!missed.length) {
+    els.reviewSection.classList.add("hidden");
+    return;
+  }
+
+  els.reviewSection.classList.remove("hidden");
+
+  missed.forEach((question, index) => {
+    const item = document.createElement("article");
+    item.className = "review-item";
+    item.innerHTML = `
+      <p class="review-index">MISS ${String(index + 1).padStart(2, "0")}</p>
+      <h3 class="review-question">${question.question}</h3>
+      <div class="review-meta">
+        <span>あなたの回答: ${MARK_LABELS[state.sessionAnswers.get(question.id)]}</span>
+        <span>正解: ${MARK_LABELS[question.correctAnswer]}</span>
+      </div>
+      <p class="review-explanation">${question.explanation}</p>
+    `;
+    els.reviewList.appendChild(item);
   });
 }
 
+function renderResult() {
+  const total = state.order.length;
+  const correct = state.order.filter(
+    (question) => state.sessionAnswers.get(question.id) === question.correctAnswer,
+  ).length;
+  const missed = total - correct;
+
+  els.resultTitle.textContent = `${total}問完了`;
+  els.resultTotal.textContent = String(total);
+  els.resultCorrect.textContent = String(correct);
+  els.resultAccuracy.textContent = toPercent(correct, total);
+  els.resultMessage.textContent =
+    missed === 0
+      ? "全問正解です。このラウンドは仕上がっています。"
+      : `${missed}問ミスしました。下の解説だけ見直して次のラウンドへ進めます。`;
+
+  renderReviewList();
+}
+
 function render() {
-  renderModeButtons();
-  renderGlobalStats();
   renderProgress();
+
+  if (state.phase === "result") {
+    els.questionView.classList.add("hidden");
+    els.resultView.classList.remove("hidden");
+    renderResult();
+    return;
+  }
+
+  els.questionView.classList.remove("hidden");
+  els.resultView.classList.add("hidden");
   renderQuestion();
 }
 
 function wireEvents() {
-  els.modeButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setMode(button.dataset.mode);
-    });
-  });
-
   els.btnO.addEventListener("click", () => setAnswer("O"));
   els.btnX.addEventListener("click", () => setAnswer("X"));
-  els.prevBtn.addEventListener("click", goToPrev);
-  els.nextBtn.addEventListener("click", goToNext);
+  els.restartBtn.addEventListener("click", startRound);
 
   window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
-    if (key === "arrowleft") {
-      goToPrev();
-    } else if (key === "arrowright") {
-      goToNext();
-    } else if (key === "o") {
-      setAnswer("O");
-    } else if (key === "x") {
-      setAnswer("X");
+    if (state.phase === "quiz") {
+      if (key === "o") {
+        setAnswer("O");
+      } else if (key === "x") {
+        setAnswer("X");
+      }
+      return;
+    }
+
+    if (key === "enter" || key === "r" || key === " ") {
+      event.preventDefault();
+      startRound();
     }
   });
 }
 
 function init() {
   wireEvents();
-  renderMissedJumps();
-  setMode("all");
+  startRound();
 }
 
 init();
