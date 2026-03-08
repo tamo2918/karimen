@@ -63,10 +63,14 @@ select {
   padding: 22px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(8px);
+  opacity: 0;
+  transform: translateY(18px);
+  animation: panel-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .intro-panel {
   padding: 26px 24px;
+  animation-delay: 0.04s;
 }
 
 .eyebrow,
@@ -252,6 +256,9 @@ h1 {
   justify-content: space-between;
   gap: 12px;
   padding: 14px 6px 0;
+  opacity: 0;
+  transform: translateY(18px);
+  animation: panel-in 0.58s cubic-bezier(0.22, 1, 0.36, 1) 0.24s forwards;
 }
 
 .stage-counter {
@@ -261,13 +268,16 @@ h1 {
 }
 
 .stage-ring {
+  --progress-ratio: 0;
   width: 42px;
   height: 42px;
   display: inline-block;
-  border: 1.5px solid var(--line-strong);
   border-radius: 50%;
   position: relative;
-  background: rgba(255, 255, 255, 0.42);
+  background:
+    radial-gradient(circle at center, var(--bg) 53%, transparent 54%),
+    conic-gradient(var(--ink) calc(var(--progress-ratio) * 1turn), rgba(21, 21, 21, 0.08) 0);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
 }
 
 .stage-ring::after {
@@ -276,6 +286,10 @@ h1 {
   inset: 7px;
   border-radius: 50%;
   border: 1px dashed rgba(21, 21, 21, 0.18);
+}
+
+.stage-ring.is-energized {
+  animation: ring-pulse 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #question-count {
@@ -353,6 +367,9 @@ h1 {
   border: 2px solid var(--line-strong);
   background: var(--panel);
   box-shadow: 0 30px 40px rgba(21, 21, 21, 0.09);
+  opacity: 0;
+  transform: translateY(20px) scale(0.985);
+  animation: card-in 0.72s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
 }
 
 .question-top {
@@ -406,29 +423,33 @@ h1 {
   font-weight: 700;
 }
 
-.answer-meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+.question-card.is-transitioning {
+  animation: question-swap 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.meta-card {
-  padding: 16px 18px;
+.answer-intro {
+  max-width: 520px;
+  padding: 14px 18px;
   border-radius: 20px;
   border: 1.5px solid var(--line);
   background: rgba(255, 255, 255, 0.58);
 }
 
-.meta-label {
+.answer-intro-label,
+.result-label {
   display: block;
   margin-bottom: 8px;
+  font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-.meta-card strong {
-  display: block;
-  font-size: 1.6rem;
-  line-height: 1;
-  letter-spacing: -0.04em;
+.answer-intro-text {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
 }
 
 .answer-buttons {
@@ -467,6 +488,21 @@ h1 {
 .answer-btn.is-selected {
   background: var(--ink);
   color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(21, 21, 21, 0.12);
+}
+
+.answer-btn.is-correct-choice {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(21, 21, 21, 0.08);
+}
+
+.answer-btn.is-wrong-choice {
+  animation: wrong-bump 0.36s ease;
+}
+
+.answer-btn.is-pop .answer-symbol {
+  animation: answer-pop 0.48s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .answer-symbol {
@@ -492,6 +528,10 @@ h1 {
   display: none;
 }
 
+.feedback.is-reveal {
+  animation: feedback-rise 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .feedback.is-correct {
   border-color: var(--ink);
 }
@@ -506,8 +546,29 @@ h1 {
   font-weight: 700;
 }
 
+.result-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.result-card {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1.5px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.result-card strong {
+  display: block;
+  font-size: 1.4rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
 .feedback-text {
-  margin: 8px 0 0;
+  margin: 14px 0 0;
   line-height: 1.7;
   color: var(--muted);
 }
@@ -529,6 +590,99 @@ h1 {
 .terminal-note {
   margin: auto 0 0;
   padding-top: 32px;
+}
+
+.metrics-panel {
+  animation-delay: 0.1s;
+}
+
+.control-panel {
+  animation-delay: 0.16s;
+}
+
+.review-panel {
+  animation-delay: 0.22s;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes question-swap {
+  0% {
+    transform: translateY(8px) scale(0.992);
+    opacity: 0.72;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes feedback-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes answer-pop {
+  0% {
+    transform: scale(0.88);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes wrong-bump {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  35% {
+    transform: translateX(-4px);
+  }
+  70% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes ring-pulse {
+  0% {
+    transform: scale(0.94);
+  }
+  55% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @media (max-width: 1080px) {
@@ -570,7 +724,7 @@ h1 {
   }
 
   .stat-grid,
-  .answer-meta,
+  .result-grid,
   .answer-buttons {
     grid-template-columns: 1fr;
   }
@@ -615,5 +769,15 @@ h1 {
   .nav-btn {
     width: 48px;
     height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }

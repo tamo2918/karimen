@@ -79,7 +79,7 @@
       <section class="stage" aria-label="クイズ問題">
         <div class="stage-head">
           <div class="stage-counter">
-            <span class="stage-ring" aria-hidden="true"></span>
+            <span id="stage-ring" class="stage-ring" aria-hidden="true"></span>
             <p id="question-count">01 / 01</p>
           </div>
           <div class="stage-nav">
@@ -104,15 +104,11 @@
 
             <h2 id="question-text" class="question-text"></h2>
 
-            <div class="answer-meta">
-              <article class="meta-card">
-                <span class="meta-label">前回の回答</span>
-                <strong id="your-answer">-</strong>
-              </article>
-              <article class="meta-card">
-                <span class="meta-label">正解</span>
-                <strong id="correct-answer">-</strong>
-              </article>
+            <div class="answer-intro">
+              <p class="answer-intro-label">Question Mode</p>
+              <p class="answer-intro-text">
+                先に答えは表示せず、回答後に結果と解説を確認できます。
+              </p>
             </div>
 
             <div class="answer-buttons">
@@ -128,6 +124,20 @@
 
             <section id="feedback" class="feedback hidden" aria-live="polite">
               <p id="feedback-title" class="feedback-title"></p>
+              <div class="result-grid">
+                <article class="result-card">
+                  <span class="result-label">今回の回答</span>
+                  <strong id="session-answer">-</strong>
+                </article>
+                <article class="result-card">
+                  <span class="result-label">前回の回答</span>
+                  <strong id="your-answer">-</strong>
+                </article>
+                <article class="result-card">
+                  <span class="result-label">正解</span>
+                  <strong id="correct-answer">-</strong>
+                </article>
+              </div>
               <p id="feedback-text" class="feedback-text"></p>
               <p class="feedback-label">解説</p>
               <p id="explanation" class="explanation"></p>

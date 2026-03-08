@@ -66,10 +66,12 @@ const els = {
   modeButtons: [...document.querySelectorAll(".mode-btn")],
   progressLabel: document.getElementById("progress-label"),
   progressBar: document.getElementById("progress-bar"),
+  stageRing: document.getElementById("stage-ring"),
   questionCount: document.getElementById("question-count"),
   sourceNo: document.getElementById("source-no"),
   previousResult: document.getElementById("previous-result"),
   questionText: document.getElementById("question-text"),
+  sessionAnswer: document.getElementById("session-answer"),
   yourAnswer: document.getElementById("your-answer"),
   correctAnswer: document.getElementById("correct-answer"),
   btnO: document.getElementById("btn-o"),
@@ -109,6 +111,21 @@ function getCurrentQuestion() {
   return state.pool[state.current] || null;
 }
 
+function restartAnimation(element, className) {
+  if (!element) {
+    return;
+  }
+
+  element.classList.remove(className);
+  void element.offsetWidth;
+  element.classList.add(className);
+}
+
+function triggerQuestionTransition() {
+  restartAnimation(els.quizCard, "is-transitioning");
+  restartAnimation(els.stageRing, "is-energized");
+}
+
 function setMode(mode, jumpToId = null) {
   state.mode = mode;
   const base =
@@ -127,6 +144,7 @@ function setMode(mode, jumpToId = null) {
   }
 
   render();
+  triggerQuestionTransition();
 }
 
 function setAnswer(answer) {
@@ -140,13 +158,23 @@ function setAnswer(answer) {
 }
 
 function goToPrev() {
-  state.current = Math.max(0, state.current - 1);
+  const nextIndex = Math.max(0, state.current - 1);
+  if (nextIndex === state.current) {
+    return;
+  }
+  state.current = nextIndex;
   render();
+  triggerQuestionTransition();
 }
 
 function goToNext() {
-  state.current = Math.min(state.pool.length - 1, state.current + 1);
+  const nextIndex = Math.min(state.pool.length - 1, state.current + 1);
+  if (nextIndex === state.current) {
+    return;
+  }
+  state.current = nextIndex;
   render();
+  triggerQuestionTransition();
 }
 
 function renderGlobalStats() {
@@ -185,36 +213,49 @@ function renderProgress() {
 
   els.progressLabel.textContent = `${MODE_LABELS[state.mode]} / ${String(index).padStart(2, "0")} - ${String(total).padStart(2, "0")}`;
   els.progressBar.style.width = `${ratio}%`;
+  els.stageRing?.style.setProperty("--progress-ratio", `${total ? index / total : 0}`);
 }
 
 function resetChoiceStyles() {
-  els.btnO.classList.remove("is-selected");
-  els.btnX.classList.remove("is-selected");
+  [els.btnO, els.btnX].forEach((button) => {
+    button.classList.remove(
+      "is-selected",
+      "is-correct-choice",
+      "is-wrong-choice",
+      "is-pop",
+    );
+  });
 }
 
 function renderFeedback(question, sessionAnswer) {
   if (!sessionAnswer) {
     els.feedback.classList.add("hidden");
-    els.feedback.classList.remove("is-correct", "is-wrong");
+    els.feedback.classList.remove("is-correct", "is-wrong", "is-reveal");
     resetChoiceStyles();
     return;
   }
 
   const isCorrect = sessionAnswer === question.correctAnswer;
+  const selectedButton = sessionAnswer === "O" ? els.btnO : els.btnX;
+  const correctButton = question.correctAnswer === "O" ? els.btnO : els.btnX;
 
   els.feedback.classList.remove("hidden");
   els.feedback.classList.toggle("is-correct", isCorrect);
   els.feedback.classList.toggle("is-wrong", !isCorrect);
-  els.feedbackTitle.textContent = isCorrect ? "今回の回答: 正解" : "今回の回答: 不正解";
-  els.feedbackText.textContent = `あなたの回答: ${MARK_LABELS[sessionAnswer]} / 正解: ${MARK_LABELS[question.correctAnswer]}`;
+  els.feedbackTitle.textContent = isCorrect ? "Correct." : "Need one more pass.";
+  els.sessionAnswer.textContent = MARK_LABELS[sessionAnswer];
+  els.yourAnswer.textContent = MARK_LABELS[question.yourAnswer];
+  els.correctAnswer.textContent = MARK_LABELS[question.correctAnswer];
+  els.feedbackText.textContent = `前回は ${MARK_LABELS[question.yourAnswer]}、今回は ${MARK_LABELS[sessionAnswer]}。ルールの差分を解説で固めます。`;
   els.explanation.textContent = question.explanation;
 
   resetChoiceStyles();
-  if (sessionAnswer === "O") {
-    els.btnO.classList.add("is-selected");
-  } else {
-    els.btnX.classList.add("is-selected");
+  selectedButton.classList.add("is-selected", "is-pop");
+  correctButton.classList.add("is-correct-choice");
+  if (!isCorrect) {
+    selectedButton.classList.add("is-wrong-choice");
   }
+  restartAnimation(els.feedback, "is-reveal");
 }
 
 function renderQuestion() {
@@ -225,6 +266,7 @@ function renderQuestion() {
     els.previousResult.textContent = "前回結果: -";
     els.previousResult.classList.remove("pill-correct", "pill-missed");
     els.questionText.textContent = "このモードで表示できる問題がありません。";
+    els.sessionAnswer.textContent = "-";
     els.yourAnswer.textContent = "-";
     els.correctAnswer.textContent = "-";
     els.btnO.disabled = true;
@@ -246,8 +288,9 @@ function renderQuestion() {
   els.previousResult.classList.toggle("pill-correct", previouslyCorrect);
   els.previousResult.classList.toggle("pill-missed", !previouslyCorrect);
   els.questionText.textContent = question.question;
-  els.yourAnswer.textContent = MARK_LABELS[question.yourAnswer];
-  els.correctAnswer.textContent = MARK_LABELS[question.correctAnswer];
+  els.sessionAnswer.textContent = "-";
+  els.yourAnswer.textContent = "-";
+  els.correctAnswer.textContent = "-";
 
   els.btnO.disabled = false;
   els.btnX.disabled = false;
