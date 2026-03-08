@@ -68,8 +68,6 @@ const els = {
   progressBar: document.getElementById("progress-bar"),
   stageRing: document.getElementById("stage-ring"),
   questionCount: document.getElementById("question-count"),
-  sourceNo: document.getElementById("source-no"),
-  previousResult: document.getElementById("previous-result"),
   questionText: document.getElementById("question-text"),
   sessionAnswer: document.getElementById("session-answer"),
   yourAnswer: document.getElementById("your-answer"),
@@ -262,9 +260,6 @@ function renderQuestion() {
   const question = getCurrentQuestion();
   if (!question) {
     els.questionCount.textContent = "00 / 00";
-    els.sourceNo.textContent = "出典No: -";
-    els.previousResult.textContent = "前回結果: -";
-    els.previousResult.classList.remove("pill-correct", "pill-missed");
     els.questionText.textContent = "このモードで表示できる問題がありません。";
     els.sessionAnswer.textContent = "-";
     els.yourAnswer.textContent = "-";
@@ -277,16 +272,11 @@ function renderQuestion() {
     return;
   }
 
-  const previouslyCorrect = wasPreviouslyCorrect(question);
   const sessionAnswer = state.sessionAnswers.get(question.id);
 
   els.questionCount.textContent = `${String(state.current + 1).padStart(2, "0")} / ${String(
     state.pool.length,
   ).padStart(2, "0")}`;
-  els.sourceNo.textContent = `source ${question.sourceNo}`;
-  els.previousResult.textContent = previouslyCorrect ? "前回: 正解" : "前回: ミス";
-  els.previousResult.classList.toggle("pill-correct", previouslyCorrect);
-  els.previousResult.classList.toggle("pill-missed", !previouslyCorrect);
   els.questionText.textContent = question.question;
   els.sessionAnswer.textContent = "-";
   els.yourAnswer.textContent = "-";
